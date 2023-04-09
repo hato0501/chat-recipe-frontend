@@ -6,6 +6,25 @@ import MessageInput from "../components/MessageInput";
 import SendMessageButton from "../components/SendMessageButton";
 import axios from "axios";
 
+const callBackendChatGPT = async (text: string, text_history: string) => {
+  const response = await axios.post("http://127.0.0.1:8000/api/v1/chat/chatgpt", {
+    text: text,
+    text_history: text_history,
+  }, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (response.status === 200) {
+    const chatgptResponse = response.data.text;
+    console.log("OK!", response)
+    return chatgptResponse;
+  } else {
+    throw new Error("Failed to fetch ChatGPT response");
+  }
+};
+
 const Chat = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [messages, setMessages] = useState<MessageData[]>([]);
@@ -21,13 +40,15 @@ const Chat = () => {
     setMessages([...messages, newMessage]);
 
     try {
-      const response = await axios.post("/api/chat", { text });
-      const gptResponse = response.data.message;
+      const gptResponse = await callBackendChatGPT(text, "");
+      // console.log(response)
+      // const response = await axios.post("/api/chat", { text: text, history: messages });
+      // const gptResponse = response.data.message;
       const aiMessage: MessageData = {
         id: messages.length + 1,
         text: gptResponse,
         timestamp: new Date(),
-        sender: "ai",
+        sender: "ChatGPT",
       };
       console.log("ai part")
       setMessages((prevMessages) => [...prevMessages, aiMessage]);

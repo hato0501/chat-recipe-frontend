@@ -1,19 +1,24 @@
+// TODO: フロントエンドでこのAPIを実装する必要はない（バックエンドで実装済）
+
 import { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
+import { MessageData } from "../../types";
 
 const openaiApiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === "POST") {
-    const { text } = req.body;
+    const { text, history } = req.body;
+    const chatHistory = history.map((message: MessageData) =>
+    `${message.sender === "user" ? "User" : "ChatGPT"}: ${message.text}`).join("\n");
 
     try {
       const response = await axios.post(
         "https://api.openai.com/v1/completions",
         {
           model: "text-davinci-003",
-          prompt: `User: ${text}\nChatGPT: `,
+          prompt: `${chatHistory}\nUser: ${text}\nChatGPT: `,
           max_tokens: 500,
           n: 1,
           stop: null,
