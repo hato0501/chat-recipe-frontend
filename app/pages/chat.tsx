@@ -4,19 +4,36 @@ import { MessageData } from "../types";
 import ChatContainer from "../components/ChatContainer";
 import MessageInput from "../components/MessageInput";
 import SendMessageButton from "../components/SendMessageButton";
+import axios from "axios";
 
 const Chat = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [messages, setMessages] = useState<MessageData[]>([]);
 
-  const handleMessageSend = (text: string) => {
+  const handleMessageSend = async (text: string) => {
     const newMessage: MessageData = {
       id: messages.length,
       text: text,
       timestamp: new Date(),
-      sender: "me",
+      sender: "user",
     };
+    console.log("user part")
     setMessages([...messages, newMessage]);
+
+    try {
+      const response = await axios.post("/api/chat", { text });
+      const gptResponse = response.data.message;
+      const aiMessage: MessageData = {
+        id: messages.length + 1,
+        text: gptResponse,
+        timestamp: new Date(),
+        sender: "ai",
+      };
+      console.log("ai part")
+      setMessages((prevMessages) => [...prevMessages, aiMessage]);
+    } catch (error) {
+      console.error("Error fetching response from ChatGPT:", error);
+    }
   };
 
   const handleButtonClick = () => {
